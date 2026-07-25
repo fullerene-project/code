@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.10.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageReference Include="WolverineFx" Version="6.8.0" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" Version="6.8.0" />
+    <PackageReference Include="WolverineFx.Postgresql" Version="6.8.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\shared\Fullerene.Shared.Contracts\Fullerene.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\..\shared\Fullerene.Shared.Infrastructure\Fullerene.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\Fullerene.Manager.Application\Fullerene.Manager.Application.csproj" />
+    <ProjectReference Include="..\Fullerene.Manager.Domain\Fullerene.Manager.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Persistence\Migrations\" />
+  </ItemGroup>
+
+</Project>

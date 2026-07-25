@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\Fullerene.Manager.Api\Fullerene.Manager.Api.csproj" />
+    <Project Path="src\Fullerene.Manager.Application\Fullerene.Manager.Application.csproj" />
+    <Project Path="src\Fullerene.Manager.Domain\Fullerene.Manager.Domain.csproj" />
+    <Project Path="src\Fullerene.Manager.Infrastructure\Fullerene.Manager.Infrastructure.csproj" />
+  </Folder>
+  <Project Path="../../shared/Fullerene.Shared.Common/Fullerene.Shared.Common.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Contracts/Fullerene.Shared.Contracts.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Domain/Fullerene.Shared.Domain.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Hosting/Fullerene.Shared.Hosting.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Infrastructure/Fullerene.Shared.Infrastructure.csproj" />
+</Solution>

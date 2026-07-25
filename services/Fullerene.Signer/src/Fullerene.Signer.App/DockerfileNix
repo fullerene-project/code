@@ -1,0 +1,41 @@
+﻿FROM docker.io/nixos/nix:latest AS builder
+WORKDIR /src
+
+ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV NUGET_PACKAGES=/root/.nuget/packages
+
+COPY services/Fullerene.Signer/flake.nix services/Fullerene.Signer/flake.lock /nix-env/
+
+RUN nix develop /nix-env#signer --command true
+
+COPY ["shared/Fullerene.Shared.Contracts/Fullerene.Shared.Contracts.csproj", "shared/Fullerene.Shared.Contracts/"]
+COPY ["shared/Fullerene.Shared.Hosting/Fullerene.Shared.Hosting.csproj", "shared/Fullerene.Shared.Hosting/"]
+COPY ["shared/Fullerene.Shared.Infrastructure/Fullerene.Shared.Infrastructure.csproj", "shared/Fullerene.Shared.Infrastructure/"]
+COPY ["shared/Fullerene.Shared.Common/Fullerene.Shared.Common.csproj", "shared/Fullerene.Shared.Common/"]
+COPY ["shared/Fullerene.Shared.Domain/Fullerene.Shared.Domain.csproj", "shared/Fullerene.Shared.Domain/"]
+
+COPY ["services/Fullerene.Signer/Fullerene.Signer.slnx", "services/Fullerene.Signer/"]
+COPY ["services/Fullerene.Signer/src/Fullerene.Signer.App/Fullerene.Signer.App.csproj", "services/Fullerene.Signer/src/Fullerene.Signer.App/"]
+COPY ["services/Fullerene.Signer/src/Fullerene.Signer.Application/Fullerene.Signer.Application.csproj", "services/Fullerene.Signer/src/Fullerene.Signer.Application/"]
+COPY ["services/Fullerene.Signer/src/Fullerene.Signer.Infrastructure/Fullerene.Signer.Infrastructure.csproj", "services/Fullerene.Signer/src/Fullerene.Signer.Infrastructure/"]
+
+RUN nix develop /nix-env#signer --command dotnet restore services/Fullerene.Signer/Fullerene.Signer.slnx
+
+COPY . .
+
+RUN nix develop /nix-env#signer --offline --command dotnet publish services/Fullerene.Signer/src/Fullerene.Signer.App/Fullerene.Signer.App.csproj -c Release -o /out --no-restore
+
+FROM docker.io/nixos/nix:latest
+WORKDIR /app
+
+ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+COPY services/Fullerene.Signer/flake.nix services/Fullerene.Signer/flake.lock /nix-env/
+
+RUN nix develop /nix-env#signer --command true
+
+COPY --from=builder /out .
+
+ENTRYPOINT ["nix", "develop", "/nix-env#signer", "--command", "dotnet", "Fullerene.Signer.App.dll"]

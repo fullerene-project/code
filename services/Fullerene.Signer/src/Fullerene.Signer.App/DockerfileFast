@@ -1,0 +1,35 @@
+﻿FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
+WORKDIR /src
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV NUGET_PACKAGES=/root/.nuget/packages
+
+COPY ["shared/Fullerene.Shared.Contracts/Fullerene.Shared.Contracts.csproj", "shared/Fullerene.Shared.Contracts/"]
+COPY ["shared/Fullerene.Shared.Hosting/Fullerene.Shared.Hosting.csproj", "shared/Fullerene.Shared.Hosting/"]
+COPY ["shared/Fullerene.Shared.Infrastructure/Fullerene.Shared.Infrastructure.csproj", "shared/Fullerene.Shared.Infrastructure/"]
+COPY ["shared/Fullerene.Shared.Common/Fullerene.Shared.Common.csproj", "shared/Fullerene.Shared.Common/"]
+COPY ["shared/Fullerene.Shared.Domain/Fullerene.Shared.Domain.csproj", "shared/Fullerene.Shared.Domain/"]
+
+COPY ["services/Fullerene.Signer/Fullerene.Signer.slnx", "services/Fullerene.Signer/"]
+COPY ["services/Fullerene.Signer/src/Fullerene.Signer.App/Fullerene.Signer.App.csproj", "services/Fullerene.Signer/src/Fullerene.Signer.App/"]
+COPY ["services/Fullerene.Signer/src/Fullerene.Signer.Application/Fullerene.Signer.Application.csproj", "services/Fullerene.Signer/src/Fullerene.Signer.Application/"]
+COPY ["services/Fullerene.Signer/src/Fullerene.Signer.Infrastructure/Fullerene.Signer.Infrastructure.csproj", "services/Fullerene.Signer/src/Fullerene.Signer.Infrastructure/"]
+
+RUN dotnet restore services/Fullerene.Signer/Fullerene.Signer.slnx
+
+COPY . .
+RUN dotnet publish services/Fullerene.Signer/src/Fullerene.Signer.App/Fullerene.Signer.App.csproj -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    apksigner \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/publish .
+
+ENTRYPOINT ["dotnet", "Fullerene.Signer.App.dll"]

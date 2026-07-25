@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\Fullerene.Signer.Application\Fullerene.Signer.Application.csproj" />
+    <Project Path="src\Fullerene.Signer.App\Fullerene.Signer.App.csproj" />
+    <Project Path="src\Fullerene.Signer.Infrastructure\Fullerene.Signer.Infrastructure.csproj" />
+  </Folder>
+  <Project Path="../../shared/Fullerene.Shared.Common/Fullerene.Shared.Common.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Contracts/Fullerene.Shared.Contracts.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Domain/Fullerene.Shared.Domain.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Hosting/Fullerene.Shared.Hosting.csproj" />
+  <Project Path="../../shared/Fullerene.Shared.Infrastructure/Fullerene.Shared.Infrastructure.csproj" />
+</Solution>

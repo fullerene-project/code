@@ -1,0 +1,45 @@
+﻿FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
+WORKDIR /src
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV NUGET_PACKAGES=/root/.nuget/packages
+
+COPY ["shared/Fullerene.Shared.Contracts/Fullerene.Shared.Contracts.csproj", "shared/Fullerene.Shared.Contracts/"]
+COPY ["shared/Fullerene.Shared.Hosting/Fullerene.Shared.Hosting.csproj", "shared/Fullerene.Shared.Hosting/"]
+COPY ["shared/Fullerene.Shared.Infrastructure/Fullerene.Shared.Infrastructure.csproj", "shared/Fullerene.Shared.Infrastructure/"]
+COPY ["shared/Fullerene.Shared.Common/Fullerene.Shared.Common.csproj", "shared/Fullerene.Shared.Common/"]
+COPY ["shared/Fullerene.Shared.Domain/Fullerene.Shared.Domain.csproj", "shared/Fullerene.Shared.Domain/"]
+
+COPY ["services/Fullerene.Manager/Fullerene.Manager.slnx", "services/Fullerene.Manager/"]
+COPY ["services/Fullerene.Manager/src/Fullerene.Manager.Api/Fullerene.Manager.Api.csproj", "services/Fullerene.Manager/src/Fullerene.Manager.Api/"]
+COPY ["services/Fullerene.Manager/src/Fullerene.Manager.Application/Fullerene.Manager.Application.csproj", "services/Fullerene.Manager/src/Fullerene.Manager.Application/"]
+COPY ["services/Fullerene.Manager/src/Fullerene.Manager.Infrastructure/Fullerene.Manager.Infrastructure.csproj", "services/Fullerene.Manager/src/Fullerene.Manager.Infrastructure/"]
+COPY ["services/Fullerene.Manager/src/Fullerene.Manager.Domain/Fullerene.Manager.Domain.csproj", "services/Fullerene.Manager/src/Fullerene.Manager.Domain/"]
+
+RUN dotnet restore services/Fullerene.Manager/Fullerene.Manager.slnx
+
+COPY . .
+RUN dotnet publish services/Fullerene.Manager/src/Fullerene.Manager.Api/Fullerene.Manager.Api.csproj -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates \
+    curl \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/* 
+
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
+    --init none \
+    --no-confirm
+
+ENV PATH="/nix/var/nix/profiles/default/bin:${PATH}"
+
+COPY --from=builder /app/publish .
+
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "Fullerene.Manager.Api.dll"]

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\shared\Fullerene.Shared.Hosting\Fullerene.Shared.Hosting.csproj" />
+    <ProjectReference Include="..\Fullerene.Manager.Application\Fullerene.Manager.Application.csproj" />
+    <ProjectReference Include="..\Fullerene.Manager.Infrastructure\Fullerene.Manager.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.3" />
+    <PackageReference Include="WolverineFx" Version="6.8.0" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" Version="6.8.0" />
+    <PackageReference Include="WolverineFx.Postgresql" Version="6.8.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.8.0" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.8.0" />
+  </ItemGroup>
+
+</Project>

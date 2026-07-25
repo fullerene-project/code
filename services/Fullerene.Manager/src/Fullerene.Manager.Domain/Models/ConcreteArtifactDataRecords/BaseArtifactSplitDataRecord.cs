@@ -1,0 +1,3 @@
+namespace Fullerene.Manager.Domain.Models.ConcreteArtifactDataRecords;
+
+public sealed class BaseArtifactSplitDataRecord : MasterArtifactSplitDataRecord;

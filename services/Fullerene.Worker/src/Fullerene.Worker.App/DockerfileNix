@@ -1,0 +1,39 @@
+﻿FROM docker.io/nixos/nix:latest AS builder
+WORKDIR /src
+
+ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV NUGET_PACKAGES=/root/.nuget/packages
+
+COPY services/Fullerene.Worker/flake.nix services/Fullerene.Worker/flake.lock /nix-env/
+RUN nix develop /nix-env#worker --command true
+
+COPY ["shared/Fullerene.Shared.Contracts/Fullerene.Shared.Contracts.csproj", "shared/Fullerene.Shared.Contracts/"]
+COPY ["shared/Fullerene.Shared.Hosting/Fullerene.Shared.Hosting.csproj", "shared/Fullerene.Shared.Hosting/"]
+COPY ["shared/Fullerene.Shared.Infrastructure/Fullerene.Shared.Infrastructure.csproj", "shared/Fullerene.Shared.Infrastructure/"]
+COPY ["shared/Fullerene.Shared.Common/Fullerene.Shared.Common.csproj", "shared/Fullerene.Shared.Common/"]
+COPY ["shared/Fullerene.Shared.Domain/Fullerene.Shared.Domain.csproj", "shared/Fullerene.Shared.Domain/"]
+
+COPY ["services/Fullerene.Worker/Fullerene.Worker.slnx", "services/Fullerene.Worker/"]
+COPY ["services/Fullerene.Worker/src/Fullerene.Worker.App/Fullerene.Worker.App.csproj", "services/Fullerene.Worker/src/Fullerene.Worker.App/"]
+COPY ["services/Fullerene.Worker/src/Fullerene.Worker.Application/Fullerene.Worker.Application.csproj", "services/Fullerene.Worker/src/Fullerene.Worker.Application/"]
+COPY ["services/Fullerene.Worker/src/Fullerene.Worker.Infrastructure/Fullerene.Worker.Infrastructure.csproj", "services/Fullerene.Worker/src/Fullerene.Worker.Infrastructure/"]
+
+RUN nix develop /nix-env#worker --command dotnet restore services/Fullerene.Worker/Fullerene.Worker.slnx
+
+COPY . .
+
+RUN nix develop /nix-env#worker --offline --command dotnet publish services/Fullerene.Worker/src/Fullerene.Worker.App/Fullerene.Worker.App.csproj -c Release -o /out --no-restore
+
+FROM docker.io/nixos/nix:latest
+WORKDIR /app
+
+ENV NIX_CONFIG="extra-experimental-features = nix-command flakes"
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+COPY services/Fullerene.Worker/flake.nix services/Fullerene.Worker/flake.lock /nix-env/
+RUN nix develop /nix-env#worker --command true
+
+COPY --from=builder /out .
+
+ENTRYPOINT ["nix", "develop", "/nix-env#worker", "--command", "dotnet", "Fullerene.Worker.App.dll"]
