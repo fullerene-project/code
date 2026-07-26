@@ -47,7 +47,8 @@ Android application build and delivery infrastructure focused on reproducibility
 - [Licensing](#licensing)
 
 # System architecture
-<img src="./architecture.png" alt="Architecture visualisation">
+![Architecture visualisation](./architecture.png)
+
 #### Fullerene Manager
 API and orchestration service.
 - Exposes REST endpoints for clients.
@@ -95,7 +96,11 @@ cp .env.signer.example .env.signer
 ```
 
 **Step 3: Edit `.env.db` `.env.rabbitmq` `.env.garage` files**
-Set Postgres, Garage and RabbitMQ secrets
+- Set Postgres and RabbitMQ secrets.
+- Set Garage secrets in `.env.garage`. Generate secure hex tokens for `GARAGE_RPC_SECRET` and `GARAGE_ADMIN_TOKEN` using:
+```shell
+  openssl rand -hex 32
+```
 
 **Step 4: Start infrastructure services**
 ```shell
