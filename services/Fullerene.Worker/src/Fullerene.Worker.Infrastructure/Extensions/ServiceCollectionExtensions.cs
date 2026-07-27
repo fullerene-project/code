@@ -18,13 +18,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, IConfiguration configuration)
     {
-        services.ConfigureSettings<PodmanSettings>(configuration);
+        services.ConfigureSettings<PodmanNixBuilderSettings>(configuration);
 
         services.ConfigureSettings<RabbitMqBuildTaskSubscriptionSettings>(configuration);
 
         return services
             .AddStartupTask<PodmanPresenceCheckTask>()
-            .AddTransient<IContainerNixBuilder, PodmanNixBuilder>()
+            .AddTransient<INixBuilder, PodmanNixBuilder>()
             .AddFullereneStorage(configuration);
     }
 

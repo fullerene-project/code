@@ -99,12 +99,12 @@ cp .env.signer.example .env.signer
 - Set Postgres and RabbitMQ secrets.
 - Set Garage secrets in `.env.garage`. Generate secure hex tokens for `GARAGE_RPC_SECRET` and `GARAGE_ADMIN_TOKEN` using:
 ```shell
-  openssl rand -hex 32
+openssl rand -hex 32
 ```
 
 **Step 4: Start infrastructure services**
 ```shell
-podman compose up db rabbitmq garage 
+podman compose up -d db rabbitmq garage
 ```
 
 **Step 5: Run the Garage initialization script**
@@ -117,7 +117,7 @@ chmod +x setup_garage.sh
 - Enter the corresponding keys obtained in the previous step, as well as other secrets.
 - Generate a secure master seed for the signer service:
 ```shell
-  openssl rand -base64 64
+openssl rand -base64 64
 ```
   Set the generated string as `SigningSettings__MasterSeedBase64` in `.env.signer`.
 

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Fullerene.Worker.Application.Services;
 
 public sealed class BuildTaskHandler(
-    IContainerNixBuilder containerNixBuilder,
+    INixBuilder nixBuilder,
     IUnsignedApkStorage unsignedApkStorage,
     IEventPublisher eventPublisher,
     ILogger<BuildTaskHandler> logger)
@@ -20,32 +20,30 @@ public sealed class BuildTaskHandler(
 
     public async Task Handle(BuildTask buildTask, CancellationToken ct)
     {
-        string? resultFolder = null;
+        string buildResultDirPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         try
         {
-            await eventPublisher.PublishEventAsync(new BuildStartedEvent { BuildWorkflowId = buildTask.BuildWorkflowId, }, ct);
+            await eventPublisher.PublishEventAsync(new BuildStartedEvent { BuildWorkflowId = buildTask.BuildWorkflowId }, ct);
 
-            resultFolder = await containerNixBuilder.StartNixPackageBuildAsync(buildTask, ct);
+            Directory.CreateDirectory(buildResultDirPath);
+            
+            await nixBuilder.StartNixPackageBuildAsync(buildTask.NixFlakeUrl,
+                    buildTask.PackageName, buildResultDirPath, ct);
 
-            var manifestPath = Path.Combine(resultFolder, ManifestFileName);
+            var manifestPath = Path.Combine(buildResultDirPath, ManifestFileName);
             await using var manifestFileStream = File.OpenRead(manifestPath);
             var manifest = await JsonSerializer
                 .DeserializeAsync<NixBuildOutputManifest>(manifestFileStream, JsonSerializerOptions, cancellationToken: ct);
 
             if (manifest is null)
             {
-                logger.LogCritical("Build task for workflow \"{BuildWorkflowId}\" " +
-                                   "did not produce \"{ManifestFileName}\" build manifest file",
-                    buildTask.BuildWorkflowId, ManifestFileName);
-
                 throw new Exception($"Build task for workflow \"{buildTask.BuildWorkflowId}\" " +
                                     $"did not produce \"{ManifestFileName}\" build manifest file)");
             }
 
             if (manifest.Entries.Count == 0)
             {
-                logger.LogCritical("Build task for workflow \"{BuildWorkflowId}\" manifest contains no entries", buildTask.BuildWorkflowId);
-                throw new Exception($"Build task for workflow \"{buildTask.BuildWorkflowId}\" manifest contains less than 1 entry");
+                throw new Exception($"Build task for workflow \"{buildTask.BuildWorkflowId}\" manifest contains no entries");
             }
 
             var buildResultManifest = new BuildResultManifest
@@ -59,26 +57,19 @@ public sealed class BuildTaskHandler(
             foreach (var entry in manifest.Entries)
             {
                 logger.LogInformation("Processing build result entry: \"{FileName}\"", entry.FileName);
-                var unsignedApkFilePath = Path.Combine(resultFolder, entry.FileName);
+                
+                var unsignedApkFilePath = Path.Combine(buildResultDirPath, entry.FileName);
                 var unsignedApkSha256 = await CommonMethods.GetFileSha256Async(unsignedApkFilePath, ct);
                 var unsignedApkSizeBytes = new FileInfo(unsignedApkFilePath).Length;
 
                 if (!string.Equals(unsignedApkSha256, entry.FileSha256, StringComparison.OrdinalIgnoreCase))
                 {
-                    logger.LogCritical("Manifest entry sha256: \"{ManifestSha256}\" is different " +
-                                       "from actual file sha256: \"{ActualSha256}\"",
-                        entry.FileSha256, unsignedApkSha256);
-
                     throw new Exception($"Manifest entry sha256: \"{entry.FileSha256}\" is different " +
                                         $"from actual file sha256: \"{unsignedApkSha256}\"");
                 }
 
                 if (unsignedApkSizeBytes != entry.FileSizeBytes)
                 {
-                    logger.LogCritical("Manifest entry file size bytes: \"{ManifestFileSizeBytes}\" is different " +
-                                       "from actual file size bytes: \"{ActualFileSizeBytes}\"",
-                        entry.FileSizeBytes, unsignedApkSizeBytes);
-
                     throw new Exception($"Manifest entry file size bytes: \"{entry.FileSizeBytes}\" is different " +
                                         $"from actual file size bytes: \"{unsignedApkSizeBytes}\"");
                 }
@@ -144,10 +135,8 @@ public sealed class BuildTaskHandler(
         }
         finally
         {
-            if (resultFolder is not null && Directory.Exists(resultFolder))
-            {
-                Directory.Delete(resultFolder, true);
-            }
+            if (Directory.Exists(buildResultDirPath))
+                Directory.Delete(buildResultDirPath, true);
         }
     }
 }

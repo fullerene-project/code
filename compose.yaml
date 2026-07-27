@@ -76,7 +76,6 @@ services:
       context: .
       dockerfile: services/Fullerene.Worker/src/Fullerene.Worker.App/DockerfileFast
     volumes:
-      - file_transfer:/out:z
       - /run/user/1000/podman/podman.sock:/run/podman/podman.sock
     env_file:
       - .env.worker
@@ -104,8 +103,6 @@ services:
 volumes:
   nix_build_cache:
     name: nix_build_cache
-  file_transfer:
-    name: file_transfer
   rabbitmq_data:
   rabbitmq_log:
   garage_meta:
