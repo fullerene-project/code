@@ -4,5 +4,5 @@ public sealed class BuildSucceededWorkflowEventPayload : WorkflowEventPayload
 {
     public override WorkflowEventType EventType => WorkflowEventType.BuildSucceeded;
 
-    public required ICollection<Guid> ArtifactIds { get; set; }
+    public required Guid[] ArtifactIds { get; set; }
 }

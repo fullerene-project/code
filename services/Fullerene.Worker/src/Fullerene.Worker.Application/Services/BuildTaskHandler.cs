@@ -131,7 +131,6 @@ public sealed class BuildTaskHandler(
                 BuildWorkflowId = buildTask.BuildWorkflowId,
                 ErrorText = e.Message
             }, ct);
-            throw;
         }
         finally
         {

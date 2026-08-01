@@ -13,23 +13,23 @@ public sealed class SigningStartedEventHandler(
 {
     public async Task Handle(SigningStartedEvent @event, CancellationToken ct)
     {
-        logger.LogInformation("Signing started. Unsigned artifact id: \"{UnsignedArtifactId}\"", @event.UnsignedArtifactId);
+        var buildWorkflow = await context.BuildWorkflows
+            .FirstOrDefaultAsync(bw => bw.Id == @event.BuildWorkflowId, ct);
 
-        var workflowId = await context.BuildWorkflows
-            .Where(x => x.Artifacts.Any(y => y.Id == @event.UnsignedArtifactId))
-            .Select(x => x.Id)
-            .FirstOrDefaultAsync(ct);
-
-        if (workflowId == Guid.Empty)
+        if (buildWorkflow is null)
         {
-            logger.LogWarning("No workflow found for unsigned artifact with id: \"{UnsignedArtifactId}\"", @event.UnsignedArtifactId);
+            logger.LogWarning("No workflow found with id: \"{BuildWorkflowId}\"", @event.BuildWorkflowId);
             return;
         }
+        
+        logger.LogInformation("Signing started. Build workflow id: \"{BuildWorkflowId}\"", @event.BuildWorkflowId);
+        
+        buildWorkflow.SigningStarted();
 
         var workflowEvent = WorkflowEvent.CreateNew(
-            buildWorkflowId: workflowId,
+            buildWorkflowId: buildWorkflow.Id,
             dateTimeOffset: @event.PublishDateTimeOffset,
-            payload: new SigningStartedWorkflowEventPayload { UnsignedArtifactId = @event.UnsignedArtifactId });
+            payload: new SigningStartedWorkflowEventPayload { BuildWorkflowId = @event.BuildWorkflowId });
 
         context.WorkflowEvents.Add(workflowEvent);
 

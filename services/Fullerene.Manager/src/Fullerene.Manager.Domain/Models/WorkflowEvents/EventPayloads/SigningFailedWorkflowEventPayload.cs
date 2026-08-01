@@ -4,6 +4,6 @@ public sealed class SigningFailedWorkflowEventPayload : WorkflowEventPayload
 {
     public override WorkflowEventType EventType => WorkflowEventType.SigningFailed;
 
-    public required Guid ArtifactId { get; set; }
-    public required string ErrorText { get; set; }
+    public required Guid BuildWorkflowId { get; set; }
+    public required string ErrorMessage { get; set; }
 }

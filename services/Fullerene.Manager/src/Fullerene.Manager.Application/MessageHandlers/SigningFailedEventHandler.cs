@@ -13,22 +13,24 @@ public sealed class SigningFailedEventHandler(
 {
     public async Task Handle(SigningFailedEvent @event, CancellationToken ct)
     {
-        var artifact = await context.Artifacts
-            .FirstOrDefaultAsync(x => x.Id == @event.ArtifactId, ct);
+        var buildWorkflow = await context.BuildWorkflows
+            .FirstOrDefaultAsync(x => x.Id == @event.BuildWorkflowId, ct);
 
-        if (artifact is null)
+        if (buildWorkflow is null)
         {
-            logger.LogWarning("No artifact with id: \"{ArtifactId}\" found", @event.ArtifactId);
+            logger.LogWarning("No build workflow with id: \"{BuildWorkflowId}\" found", @event.BuildWorkflowId);
             return;
         }
+        
+        buildWorkflow.SigningFailed();
 
         var workflowEvent = WorkflowEvent.CreateNew(
-            buildWorkflowId: artifact.BuildWorkflowId,
+            buildWorkflowId: buildWorkflow.Id,
             dateTimeOffset: @event.PublishDateTimeOffset,
             payload: new SigningFailedWorkflowEventPayload
             {
-                ArtifactId = @event.ArtifactId,
-                ErrorText = @event.ErrorText,
+                BuildWorkflowId = @event.BuildWorkflowId,
+                ErrorMessage = @event.ErrorMessage
             });
 
         context.WorkflowEvents.Add(workflowEvent);

@@ -4,5 +4,5 @@ public sealed class SigningSucceededWorkflowEventPayload : WorkflowEventPayload
 {
     public override WorkflowEventType EventType => WorkflowEventType.SigningSucceeded;
 
-    public required Guid SignedArtifactId { get; set; }
+    public required Guid[] SignedArtifactIds { get; set; }
 }

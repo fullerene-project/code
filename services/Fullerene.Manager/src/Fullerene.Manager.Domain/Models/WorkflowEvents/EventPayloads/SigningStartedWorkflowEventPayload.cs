@@ -4,5 +4,5 @@ public sealed class SigningStartedWorkflowEventPayload : WorkflowEventPayload
 {
     public override WorkflowEventType EventType => WorkflowEventType.SigningStarted;
 
-    public required Guid UnsignedArtifactId { get; set; }
+    public required Guid BuildWorkflowId { get; set; }
 }

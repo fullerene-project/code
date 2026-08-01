@@ -52,27 +52,37 @@ public sealed class BuildSucceededEventHandler(
                     FileStorageKey = buildResult.UnsignedApkStorageKey
                 },
                 IdSigFileData = null,
-                ArtifactDataRecordId = artifactDataRecord.Id
+                ArtifactDataRecordId = artifactDataRecord.Id,
+                ArtifactDataRecord = artifactDataRecord
             };
-
+            
             context.Artifacts.Add(artifact);
             artifacts.Add(artifact);
-
-            await taskPublisher.PublishTaskAsync(new SigningTask
-            {
-                UnsignedArtifactId = artifact.Id,
-                AndroidAppId = workflow.AndroidAppPackageVersion.AndroidApplicationId,
-                PublishDateTimeOffset = DateTimeOffset.UtcNow,
-                UnsignedApkStorageKey = buildResult.UnsignedApkStorageKey
-            }, ct);
         }
+        
+        workflow.BuildFinished(artifacts);
 
         var workflowEvent = WorkflowEvent.CreateNew(
             buildWorkflowId: @event.BuildWorkflowId,
             dateTimeOffset: @event.PublishDateTimeOffset,
-            payload: new BuildSucceededWorkflowEventPayload { ArtifactIds = artifacts.Select(a => a.Id).ToList() });
+            payload: new BuildSucceededWorkflowEventPayload
+            {
+                ArtifactIds = artifacts.Select(art => art.Id).ToArray()
+            });
 
         context.WorkflowEvents.Add(workflowEvent);
+        
+        await taskPublisher.PublishTaskAsync(new SigningTask
+        {
+            BuildWorkflowId = workflow.Id,
+            AndroidApplicationId = workflow.AndroidAppPackageVersion.AndroidApplicationId,
+            UnsignedArtifactsData = artifacts.Select(art => new UnsignedArtifactData
+            {
+                UnsignedArtifactId = art.Id,
+                UnsignedArtifactStorageKey = art.FileData.FileStorageKey
+            }),
+            PublishDateTimeOffset = DateTimeOffset.UtcNow,
+        }, ct);
 
         await context.SaveChangesAsync(ct);
     }

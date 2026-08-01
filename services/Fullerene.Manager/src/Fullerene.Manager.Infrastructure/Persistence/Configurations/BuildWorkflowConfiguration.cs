@@ -23,14 +23,8 @@ internal sealed class BuildWorkflowConfiguration : IEntityTypeConfiguration<Buil
             .WithOne(x => x.BuildWorkflow)
             .HasForeignKey(x => x.BuildWorkflowId);
 
-        // builder.Property(x => x.Status)
-        //     .HasConversion(
-        //         x => (int)x,
-        //         x => (BuildWorkflowStatus)x)
-        //     .HasColumnType("integer")
-        //     .IsRequired();
-        //
-        // builder.Property(x => x.StatusDateTimeOffset)
-        //     .IsRequired();
+        builder.Property(x => x.Status)
+            .HasColumnType("integer")
+            .IsRequired();
     }
 }

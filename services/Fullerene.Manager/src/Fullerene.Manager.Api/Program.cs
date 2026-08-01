@@ -46,7 +46,7 @@ app.MapScalarApiReference();
 
 var projectSettings = configuration.GetSettings<ProjectSettings>(nameof(ProjectSettings));
 
-app.MapGet("/license", (HttpContext context) =>
+app.MapGet("/license", () =>
     Results.Ok(new
     {
         LicenseTextUrl = projectSettings.LicenseTextUrl,
@@ -100,8 +100,8 @@ apps.MapGet("/", async (IMessageBus messageBus, [AsParameters] GetAndroidAppPack
 
 apps.MapPatch("/latest", async (IMessageBus messageBus, [FromBody] DownloadLatestSuitableAppVersionQuery query) =>
 {
-    var neeededArtifacts = await messageBus.InvokeAsync<IEnumerable<SignedArtifactDownloadData>>(query);
-    return Results.Ok(neeededArtifacts);
+    var neededArtifacts = await messageBus.InvokeAsync<IEnumerable<SignedArtifactDownloadData>>(query);
+    return Results.Ok(neededArtifacts);
 });
 
 apps.MapPost("/{appId:guid}/track", async (IMessageBus messageBus, Guid appId) =>
@@ -126,6 +126,22 @@ artifacts.MapGet("/{artifactId:guid}/download", async (IMessageBus messageBus, G
         new DownloadArtifactQuery { ArtifactId = artifactId });
 
     return Results.Ok(signedArtifactDownloadData);
+});
+
+var versions = v1Api.MapGroup("/versions");
+
+versions.MapGet("/", async (IMessageBus messageBus, [AsParameters] GetAndroidAppPackageVersionsQuery query) =>
+{
+    var versionDtos = await messageBus.InvokeAsync<IEnumerable<AndroidAppPackageVersionDto>>(query);
+
+    return Results.Ok(versionDtos);
+});
+
+versions.MapPatch("/download", async (IMessageBus messageBus, [FromBody] DownloadVersionQuery query) =>
+{
+    var signedArtifactsDownloadData = await messageBus.InvokeAsync<IEnumerable<SignedArtifactDownloadData>>(query);
+
+    return Results.Ok(signedArtifactsDownloadData);
 });
 
 app.Run();

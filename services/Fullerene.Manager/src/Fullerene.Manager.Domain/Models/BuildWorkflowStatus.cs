@@ -3,8 +3,10 @@ namespace Fullerene.Manager.Domain.Models;
 public enum BuildWorkflowStatus
 {
     Pending = 100,
-    BuildRunning = 200,
-    Building = 300,
-    Success = 400,
-    BuildFailed = 500,
+    Building = 200,
+    BuildSucceeded = 300, 
+    Signing = 400,
+    SigningSucceeded = 500,
+    BuildFailed = 600,
+    SigningFailed = 700
 }

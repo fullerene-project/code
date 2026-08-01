@@ -1,6 +1,5 @@
 using Fullerene.Shared.Contracts.Build;
 using Fullerene.Manager.Application.Abstractions;
-using Fullerene.Manager.Domain.Models;
 using Fullerene.Manager.Domain.Models.WorkflowEvents;
 using Fullerene.Manager.Domain.Models.WorkflowEvents.EventPayloads;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +23,8 @@ public sealed class BuildFailedEventHandler(
             logger.LogWarning("No workflow with id {BuildWorkflowId} found", @event.BuildWorkflowId);
             return;
         }
+        
+        workflow.BuildFailed();
 
         var workflowEvent = WorkflowEvent.CreateNew(
             buildWorkflowId: @event.BuildWorkflowId,

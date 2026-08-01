@@ -12,6 +12,6 @@ public sealed class Artifact
     public required StorageFileData FileData { get; init; }
     public required StorageFileData? IdSigFileData { get; init; }
 
-    public BuildWorkflow BuildWorkflow { get; private set; }
-    public ArtifactDataRecord ArtifactDataRecord { get; private set; }
+    public BuildWorkflow BuildWorkflow { get; init; }
+    public ArtifactDataRecord ArtifactDataRecord { get; init; }
 }

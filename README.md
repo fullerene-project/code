@@ -264,6 +264,80 @@ Resolves and retrieves download links for the latest suitable signed artifacts f
     }
 ]
 ```
+### Versions (`/v1/versions`)
+
+#### `GET /v1/versions`
+Retrieves a paginated list of Android application package versions.
+- **Query Parameters**:
+  - `AndroidAppPackageIds` (array of uuid, optional): Filter by application package IDs.
+  - `AndroidAppPackageVersionIds` (array of uuid, optional): Filter by application package version IDs.
+  - `ReleaseChannels` (array of integer, optional): Filter by release channels (see [Enumerations Reference](#enumerations-reference)).
+  - `BaseVersionCodes` (array of integer, optional): Filter by base version codes.
+  - `MinBaseVersionCode` (integer, optional): Filter by minimum base version code.
+  - `MaxBaseVersionCode` (integer, optional): Filter by maximum base version code.
+  - `Page` (integer, optional, default: `1`): Page number.
+  - `PageSize` (integer, optional, default: `10`, max: `20`): Page size.
+- **Response**: `200 OK`
+```json
+[
+    {
+      "id": "uuid",
+      "nixPackageRepoId": "uuid",
+      "commitHash": "string",
+      "nixPackageName": "string",
+      "androidApplicationId": "string",
+      "appVersionString": "string",
+      "baseVersionCode": 0,
+      "nixPackageRevision": 0,
+      "nixDerivationHash": "string",
+      "releaseChannel": 10,
+      "appVersionReleaseDate": "2026-08-01T00:00:00Z",
+      "appLogoUrl": "string",
+      "appName": "string",
+      "appSummary": "string",
+      "appDescription": "string",
+      "appLicense": "string",
+      "releaseNotes": "string"
+    }
+]
+```
+
+#### `PATCH /v1/versions/download`
+Resolves and retrieves download links for signed artifacts of a specific version based on client device parameters.
+- **Request Body**:
+```json
+{
+    "versionId": "uuid",
+    "standaloneApkOnly": boolean,
+    "clientDeviceInfo": {
+      "cpuArchitecture": integer,
+      "apiVersion": integer,
+      "locales": ["string"],
+      "textureCompressionFormats": [integer],
+      "screenDensityDpi": integer,
+      "screenDensityAlias": integer
+    }
+}
+```
+- **Response**: `200 OK`
+```json
+[
+    {
+      "apkFileData": {
+        "downloadUrl": "string",
+        "fileName": "string",
+        "fileSha256": "string",
+        "fileSizeBytes": 0
+      },
+      "apkIdSigFileData": {
+        "downloadUrl": "string",
+        "fileName": "string",
+        "fileSha256": "string",
+        "fileSizeBytes": 0
+      }
+    }
+]
+```
 ### Artifacts (`/v1/artifacts`)
 
 #### `GET /v1/artifacts`

@@ -23,6 +23,8 @@ public sealed class BuildStartedEventHandler(
             logger.LogWarning("No workflow with id {BuildWorkflowId} found", @event.BuildWorkflowId);
             return;
         }
+        
+        workflow.BuildStarted();
 
         var workflowEvent = WorkflowEvent.CreateNew(
             buildWorkflowId: @event.BuildWorkflowId,

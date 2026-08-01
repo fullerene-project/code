@@ -14,31 +14,47 @@ public sealed class SigningSucceededEventHandler(
 {
     public async Task Handle(SigningSucceededEvent @event, CancellationToken ct)
     {
-        var artifact = await context.Artifacts
-            .FirstOrDefaultAsync(x => x.Id == @event.UnsignedArtifactId, ct);
+        var buildWorkflow = await context.BuildWorkflows
+            .Include(buildWorkflow => buildWorkflow.Artifacts)
+            .FirstOrDefaultAsync(bw => bw.Id == @event.BuildWorkflowId, ct);
 
-        if (artifact is null)
+        if (buildWorkflow is null)
         {
-            logger.LogWarning("No artifact with id: \"{ArtifactId}\" found", @event.UnsignedArtifactId);
+            logger.LogWarning("No build workflow with id: \"{BuildWorkflowId}\" found", @event.BuildWorkflowId);
             return;
         }
+        
+        var signedArtifacts = buildWorkflow.Artifacts
+            .Join(
+                @event.SignedArtifactsData, 
+                x => x.Id, 
+                data => data.UnsignedArtifactId, 
+                (unsignedArtifact, signedData) => new Artifact 
+                { 
+                    Id = Guid.CreateVersion7(), 
+                    BuildWorkflowId = buildWorkflow.Id, 
+                    ArtifactDataRecordId = unsignedArtifact.ArtifactDataRecordId, 
+                    IsSigned = true, 
+                    FileData = signedData.SignedApkFileData, 
+                    IdSigFileData = signedData.SignedApkIdSigFileData 
+                })
+            .ToArray();
 
-        var signedArtifact = new Artifact
+        if (signedArtifacts.Length != buildWorkflow.Artifacts.Count)
         {
-            Id = Guid.CreateVersion7(),
-            ArtifactDataRecordId = artifact.ArtifactDataRecordId,
-            BuildWorkflowId = artifact.BuildWorkflowId,
-            IsSigned = true,
-            FileData = @event.SignedApkFileData,
-            IdSigFileData = @event.SignedApkIdSigFileData
-        };
-
-        context.Artifacts.Add(signedArtifact);
-
+            throw new Exception("The number of signed artifacts does not match the number of unsigned artifacts");
+        }
+        
+        buildWorkflow.SigningFinished(signedArtifacts);
+        context.Artifacts.AddRange(signedArtifacts);
+        
         var workflowEvent = WorkflowEvent.CreateNew(
-            buildWorkflowId: artifact.BuildWorkflowId,
+            buildWorkflowId: buildWorkflow.Id,
             dateTimeOffset: @event.PublishDateTimeOffset,
-            payload: new SigningSucceededWorkflowEventPayload { SignedArtifactId = signedArtifact.Id });
+            payload: new SigningSucceededWorkflowEventPayload
+            {
+                SignedArtifactIds = signedArtifacts.Select(art => art.Id).ToArray()
+            });
 
         context.WorkflowEvents.Add(workflowEvent);
 
