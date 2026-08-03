@@ -1,3 +1,4 @@
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Shared.Infrastructure.Abstractions;
 using Fullerene.Shared.Infrastructure.Util;
 using Genbox.SimpleS3.Core.Abstracts;
@@ -16,7 +17,7 @@ public sealed class GarageGeneralS3Storage(
         var result = await upload.UploadAsync(fileStream, ct);
 
         if (!result.IsSuccess)
-            throw new Exception("Upload failed");
+            throw new InternalException("Upload failed");
     }
 
     public async Task<Stream> GetFileAsync(string bucketName, string key, CancellationToken ct)
@@ -24,7 +25,7 @@ public sealed class GarageGeneralS3Storage(
         var result = await s3Client.GetObjectAsync(bucketName, key, token: ct);
 
         if (!result.IsSuccess)
-            throw new Exception("Download failed");
+            throw new InternalException("Download failed");
 
         return result.Content;
     }

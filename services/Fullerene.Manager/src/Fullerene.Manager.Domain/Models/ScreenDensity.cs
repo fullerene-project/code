@@ -1,3 +1,4 @@
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Shared.Domain.Models;
 
 namespace Fullerene.Manager.Domain.Models;
@@ -7,17 +8,17 @@ public sealed class ScreenDensity
     public int? Dpi { get; }
     public ScreenDensityAlias? Alias { get; }
 
-    private ScreenDensity(int? dpi, ScreenDensityAlias? alias)
+    /// <exception cref="InvariantViolationException">Both dpi and alias is specified or both is null</exception>
+    public ScreenDensity(int? dpi, ScreenDensityAlias? alias)
     {
-        if ((dpi is null && alias is null) ||
-            (dpi is not null && alias is not null))
-            throw new Exception("Only one of Alias or DPI can be specified.");
-
+        if (dpi.HasValue == alias.HasValue)
+            throw new InvariantViolationException($"Only one of {nameof(Alias)} or {nameof(Dpi)} must be specified.");
+        
         Dpi = dpi;
         Alias = alias;
     }
 
-    public static ScreenDensity FromDpi(int? dpi)
+    public static ScreenDensity FromDpi(int dpi)
     {
         return new ScreenDensity(dpi, null);
     }
@@ -27,29 +28,19 @@ public sealed class ScreenDensity
         return new ScreenDensity(null, alias);
     }
 
-    public static ScreenDensity FromBoth(int? dpi, ScreenDensityAlias? alias)
-    {
-        if (dpi is null && alias is not null)
-            return FromAlias((ScreenDensityAlias)alias);
-        if (dpi is not null && alias is null)
-            return FromDpi(dpi);
-
-        throw new Exception("Only one of Alias or DPI can be specified.");
-    }
-
     public void Match(Action<ScreenDensityAlias> onAlias, Action<int> onDpi)
     {
-        if (Alias is ScreenDensityAlias alias)
+        if (Alias is { } alias)
         {
             onAlias(alias);
             return;
         }
-        if (Dpi is int dpi)
+        if (Dpi is { } dpi)
         {
             onDpi(dpi);
             return;
         }
 
-        throw new Exception("Only one of Alias or DPI can be specified.");
+        throw new InvariantViolationException($"Both {nameof(Alias)} and {nameof(Dpi)} are not specified.");
     }
 }

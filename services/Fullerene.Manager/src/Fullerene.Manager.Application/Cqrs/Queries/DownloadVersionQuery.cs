@@ -4,6 +4,7 @@ using Fullerene.Manager.Application.Extensions;
 using Fullerene.Manager.Domain.Models;
 using Fullerene.Manager.Domain.Models.ConcreteArtifactDataRecords;
 using Fullerene.Shared.Common.Abstractions.Storage;
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Shared.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +13,6 @@ namespace Fullerene.Manager.Application.Cqrs.Queries;
 public sealed class DownloadVersionQuery
 {
     public required Guid VersionId { get; init; }
-    public required bool StandaloneApkOnly { get; init; }
     public required ClientDeviceInfo? ClientDeviceInfo { get; init; }
 }
 
@@ -23,6 +23,13 @@ public sealed class DownloadVersionQueryHandler(
     public async Task<IEnumerable<SignedArtifactDownloadData>> Handle(
         DownloadVersionQuery query, CancellationToken ct)
     {
+        if (query.ClientDeviceInfo is not null &&
+            query.ClientDeviceInfo.ScreenDensityDpi.HasValue == query.ClientDeviceInfo.ScreenDensityAlias.HasValue)
+        {
+            throw ValidationException.FromSingleError(nameof(query.ClientDeviceInfo),
+                $"Only one of {nameof(ClientDeviceInfo.ScreenDensityAlias)} and {nameof(ClientDeviceInfo.ScreenDensityDpi)} must be specified");
+        }
+        
         var buildWorkflow = await context.BuildWorkflows
             .AsNoTracking()
             .Where(bw => bw.AndroidAppPackageVersionId == query.VersionId &&
@@ -32,13 +39,13 @@ public sealed class DownloadVersionQueryHandler(
             .FirstOrDefaultAsync(ct);
         
         if (buildWorkflow is null)
-            throw new Exception("This version have no succeeded build workflows");
+            throw new NotFoundException($"No succeeded build workflow found for version: \"{query.VersionId}\"");
         
         var signedArtifacts = buildWorkflow.Artifacts
             .Where(art => art.IsSigned)
             .ToArray();
 
-        if (!query.StandaloneApkOnly && query.ClientDeviceInfo is not null)
+        if (query.ClientDeviceInfo is not null)
         {
             var bestSplits = FindBestSplits(signedArtifacts, query.ClientDeviceInfo);
 
@@ -60,7 +67,7 @@ public sealed class DownloadVersionQueryHandler(
 
         var universalArtifactDto = signedArtifacts.FirstOrDefault(art =>
                                        art.ArtifactDataRecord.ArtifactType == ArtifactType.StandaloneUniversal)
-                                   ?? throw new Exception("No suitable updates found");
+                                   ?? throw new NotFoundException("No suitable app version found.");;
 
         return [signedApkPublicPresignedUrlProvider.GetDownloadData(universalArtifactDto)];
     }
@@ -121,10 +128,8 @@ public sealed class DownloadVersionQueryHandler(
                             new TypedArtifact<DensityArtifactSplitDataRecord>(art,
                                 art.ArtifactDataRecord as DensityArtifactSplitDataRecord));
 
-                        var clientDpi = clientDeviceInfo.ScreenDensityDpi ??
-                                        (clientDeviceInfo.ScreenDensityAlias is not null
-                                        ? GetDensityDpiFromAlias((ScreenDensityAlias)clientDeviceInfo.ScreenDensityAlias)
-                                        : throw new ArgumentNullException(nameof(clientDeviceInfo.ScreenDensityDpi)));
+                        var clientDpi = clientDeviceInfo.ScreenDensityDpi
+                                        ?? GetDensityDpiFromAlias((ScreenDensityAlias)clientDeviceInfo.ScreenDensityAlias);
 
                         var dpis = typed
                             .Select(art =>

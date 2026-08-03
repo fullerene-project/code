@@ -24,7 +24,7 @@ public sealed class BuildResultToDensityArtifactSplitMapper : IBuildResultToArti
                       throw InvalidBuildResultEntryException.RequiredValueNull(nameof(buildResultEntry.SplitId)),
             ModuleName = buildResultEntry.ModuleName ??
                          throw InvalidBuildResultEntryException.RequiredValueNull(nameof(buildResultEntry.ModuleName)),
-            Density = ScreenDensity.FromBoth(buildResultEntry.DensityDpi, buildResultEntry.DensityAlias)
+            Density = new ScreenDensity(buildResultEntry.DensityDpi, buildResultEntry.DensityAlias)
         };
     }
 }

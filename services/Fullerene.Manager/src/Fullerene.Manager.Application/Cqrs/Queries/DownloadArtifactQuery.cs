@@ -1,6 +1,7 @@
 using Fullerene.Shared.Common.Abstractions.Storage;
 using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Application.Dtos;
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Shared.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,7 @@ public sealed class DownloadArtifactQueryHandler(
     public async Task<SignedArtifactDownloadData> Handle(DownloadArtifactQuery query, CancellationToken ct)
     {
         if (signedApkPublicPresignedUrlProvider is null)
-            throw new Exception("Public presigned url provider is not configured");
+            throw new InternalException("Public presigned url provider is not configured");
 
         var signedArtifactInfo = await context.Artifacts
             .AsNoTracking()
@@ -31,7 +32,7 @@ public sealed class DownloadArtifactQueryHandler(
             .FirstOrDefaultAsync(ct);
 
         if (signedArtifactInfo is null)
-            throw new Exception($"Could not find artifact with id: \"{query.ArtifactId}\"");
+            throw new NotFoundException($"Could not find artifact with id: \"{query.ArtifactId}\"");
 
         var signedApkPublicDownloadUrl =
             signedApkPublicPresignedUrlProvider.GetPublicTempPresignedDownloadUrl(

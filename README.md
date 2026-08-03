@@ -571,6 +571,7 @@ This section lists all numeric enum values used across the Fullerene REST API re
 - Use retry policies
 - Use specific custom exceptions instead of the generic Exception
 - Background tasks for clearing the nix cache, updating repositories, and removing old artifacts
+- Differential updates
 - Save and stream logs in real time
 - Key rotation support (apk signing v3)
 - UnifiedPush support for notifying client applications about updates

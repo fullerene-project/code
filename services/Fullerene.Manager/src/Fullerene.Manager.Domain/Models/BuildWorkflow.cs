@@ -1,4 +1,5 @@
 using Fullerene.Manager.Domain.Models.WorkflowEvents;
+using Fullerene.Shared.Domain.Exceptions;
 
 namespace Fullerene.Manager.Domain.Models;
 
@@ -38,7 +39,9 @@ public sealed class BuildWorkflow
     {
         foreach (var artifact in artifacts)
         {
-            if (artifact.IsSigned) throw new Exception("Build can not produce signed artifacts");
+            if (artifact.IsSigned)
+                throw new InvariantViolationException("Build can not produce signed artifacts");
+            
             Artifacts.Add(artifact);
         }
         
@@ -60,10 +63,10 @@ public sealed class BuildWorkflow
         var signedArtifacts = artifacts.ToList();
         
         if (signedArtifacts.Count != Artifacts.Count)
-            throw new Exception("The number of signed artifacts must match the number of unsigned artifacts");
+            throw new InvariantViolationException("The number of signed artifacts must match the number of unsigned artifacts");
         
         if (signedArtifacts.Any(a => !a.IsSigned))
-            throw new Exception("Signing must produce signed artifacts only");
+            throw new InvariantViolationException("Signing must produce signed artifacts only");
         
         foreach (var signedArtifact in signedArtifacts)
             Artifacts.Add(signedArtifact);

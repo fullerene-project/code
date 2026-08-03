@@ -1,5 +1,6 @@
 using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Domain.Models;
+using Fullerene.Shared.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Wolverine;
@@ -21,8 +22,8 @@ public sealed class AddNixRepoCommandHandler(
     {
         if (await context.NixPackageRepos.AnyAsync(x => x.Name == command.Name, ct))
         {
-            logger.LogError("Nix package repo with name: \"{Name}\" already exists", command.Name);
-            throw new Exception($"Nix package repo with name: \"{command.Name}\" already exists");
+            throw ValidationException.FromSingleError(nameof(command.Name),
+                $"Nix package repo with name: \"{command.Name}\" already exists");
         }
 
         var repo = NixPackageRepo.CreateNew(

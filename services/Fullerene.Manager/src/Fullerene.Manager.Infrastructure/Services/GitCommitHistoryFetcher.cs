@@ -2,7 +2,7 @@ using CliWrap;
 using CliWrap.Buffered;
 using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Application.Dtos;
-using Fullerene.Manager.Application.Exceptions;
+using Fullerene.Shared.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Fullerene.Manager.Infrastructure.Services;
@@ -56,7 +56,7 @@ public sealed class GitCommitHistoryFetcher(
                         });
                         return;
                     }
-                    throw new GitHistoryFetchException($"Invalid git commit output data format: \"{gitRepoUrl}\"", gitRepoUrl);
+                    throw new InternalException($"Invalid git commit output data format: \"{gitRepoUrl}\"");
                 }))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(line => logger.LogError(line)))
                 .ExecuteAsync(ct);

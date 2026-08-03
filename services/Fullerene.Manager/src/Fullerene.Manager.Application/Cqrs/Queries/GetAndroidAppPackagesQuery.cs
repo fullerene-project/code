@@ -2,6 +2,7 @@ using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Application.Dtos;
 using Fullerene.Manager.Application.Extensions;
 using Fullerene.Manager.Application.Util;
+using Fullerene.Shared.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fullerene.Manager.Application.Cqrs.Queries;
@@ -28,7 +29,7 @@ public sealed class GetAndroidAppsQueryHandler(
         GetAndroidAppPackagesQuery query, CancellationToken ct)
     {
         if (query.PageSize > MaxPageSize)
-            throw new Exception($"Page size can not be greater than {MaxPageSize}");
+            throw ValidationException.FromSingleError(nameof(query.Page), $"Page size can not be greater than {MaxPageSize}");
 
         var dbQuery = context.AndroidAppPackages
             .AsNoTracking()

@@ -3,6 +3,7 @@ using Fullerene.Shared.Common;
 using Fullerene.Shared.Common.Abstractions.Messaging;
 using Fullerene.Shared.Common.Abstractions.Storage;
 using Fullerene.Shared.Contracts.Build;
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Shared.Domain.Models;
 using Fullerene.Worker.Application.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -37,13 +38,13 @@ public sealed class BuildTaskHandler(
 
             if (manifest is null)
             {
-                throw new Exception($"Build task for workflow \"{buildTask.BuildWorkflowId}\" " +
+                throw new InternalException($"Build task for workflow \"{buildTask.BuildWorkflowId}\" " +
                                     $"did not produce \"{ManifestFileName}\" build manifest file)");
             }
 
             if (manifest.Entries.Count == 0)
             {
-                throw new Exception($"Build task for workflow \"{buildTask.BuildWorkflowId}\" manifest contains no entries");
+                throw new InternalException($"Build task for workflow \"{buildTask.BuildWorkflowId}\" manifest contains no entries");
             }
 
             var buildResultManifest = new BuildResultManifest
@@ -64,14 +65,14 @@ public sealed class BuildTaskHandler(
 
                 if (!string.Equals(unsignedApkSha256, entry.FileSha256, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new Exception($"Manifest entry sha256: \"{entry.FileSha256}\" is different " +
-                                        $"from actual file sha256: \"{unsignedApkSha256}\"");
+                    throw new InternalException($"Manifest entry sha256: \"{entry.FileSha256}\" is different " +
+                                                $"from actual file sha256: \"{unsignedApkSha256}\"");
                 }
 
                 if (unsignedApkSizeBytes != entry.FileSizeBytes)
                 {
-                    throw new Exception($"Manifest entry file size bytes: \"{entry.FileSizeBytes}\" is different " +
-                                        $"from actual file size bytes: \"{unsignedApkSizeBytes}\"");
+                    throw new InternalException($"Manifest entry file size bytes: \"{entry.FileSizeBytes}\" is different " +
+                                                $"from actual file size bytes: \"{unsignedApkSizeBytes}\"");
                 }
 
                 var unsignedApkStorageKey = Path.Combine(unsignedApkSha256, entry.FileName);

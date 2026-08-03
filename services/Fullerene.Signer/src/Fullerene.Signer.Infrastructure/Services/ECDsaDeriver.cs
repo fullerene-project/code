@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Signer.Infrastructure.Abstractions;
 
 namespace Fullerene.Signer.Infrastructure.Services;
@@ -8,7 +9,7 @@ public sealed class ECDsaDeriver : IECDsaDeriver
     public ECDsa DeriveFromPrivateKey(byte[] privateKey)
     {
         if (privateKey.Length != 32)
-            throw new Exception("Private key length must be exactly 32 bytes");
+            throw new InternalException("Private key length must be exactly 32 bytes");
 
         var ecParams = new ECParameters
         {

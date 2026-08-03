@@ -1,6 +1,7 @@
 using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Application.Dtos;
 using Fullerene.Manager.Application.Extensions;
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Shared.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,7 +29,7 @@ public sealed class GetAndroidAppPackageVersionsQueryHandler(
         GetAndroidAppPackageVersionsQuery query, CancellationToken ct)
     {
         if (query.PageSize > MaxPageSize)
-            throw new Exception($"Page size can not be greater than {MaxPageSize}");
+            throw ValidationException.FromSingleError(nameof(query.Page), $"Page size can not be greater than {MaxPageSize}");
         
         return await context.AndroidAppPackageVersions
             .AsNoTracking()

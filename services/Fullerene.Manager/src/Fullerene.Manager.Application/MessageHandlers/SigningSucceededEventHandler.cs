@@ -3,6 +3,7 @@ using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Domain.Models;
 using Fullerene.Manager.Domain.Models.WorkflowEvents;
 using Fullerene.Manager.Domain.Models.WorkflowEvents.EventPayloads;
+using Fullerene.Shared.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -42,7 +43,7 @@ public sealed class SigningSucceededEventHandler(
 
         if (signedArtifacts.Length != buildWorkflow.Artifacts.Count)
         {
-            throw new Exception("The number of signed artifacts does not match the number of unsigned artifacts");
+            throw new InternalException("The number of signed artifacts does not match the number of unsigned artifacts");
         }
         
         buildWorkflow.SigningFinished(signedArtifacts);

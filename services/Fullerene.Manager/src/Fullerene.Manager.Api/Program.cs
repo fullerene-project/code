@@ -1,3 +1,4 @@
+using Fullerene.Manager.Api;
 using Fullerene.Shared.Common.Extensions;
 using Fullerene.Manager.Api.Extensions;
 using Fullerene.Manager.Api.Settings;
@@ -20,6 +21,7 @@ builder.Host.UseWolverine(options => options.AddFullereneManagerMessaging(config
 builder.Services.AddResourceSetupOnStartup();
 
 builder.Services
+    .AddExceptionHandler<FullereneExceptionHandler>()
     .AddOpenApi()
     .AddCors()
     .AddProblemDetails()
@@ -29,20 +31,18 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
+
 app.UseCors(x => x
     .AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader());
 
-app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
-app.MapOpenApi();
-app.MapScalarApiReference();
 
 var projectSettings = configuration.GetSettings<ProjectSettings>(nameof(ProjectSettings));
 

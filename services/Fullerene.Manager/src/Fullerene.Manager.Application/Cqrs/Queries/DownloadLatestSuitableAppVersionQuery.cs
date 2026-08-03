@@ -2,6 +2,7 @@ using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Application.Dtos;
 using Fullerene.Manager.Application.Extensions;
 using Fullerene.Manager.Domain.Models;
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Shared.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,6 @@ public sealed class DownloadLatestSuitableAppVersionQuery
     public required ClientDeviceInfo? ClientDeviceInfo { get; init; }
     public required ReleaseChannel[] ReleaseChannels { get; init; }
     public required int? CurrentBaseVersionCode { get; init; }
-    public required bool StandaloneApkOnly { get; init; }
 }
 
 public sealed class DownloadLatestSuitableAppVersionQueryHandler(
@@ -31,7 +31,7 @@ public sealed class DownloadLatestSuitableAppVersionQueryHandler(
             .AnyAsync(x => x.Id == query.AppId, ct);
 
         if (!appExists)
-            throw new Exception($"No app found with id \"{query.AppId}\"");
+            throw new NotFoundException($"No app found with id \"{query.AppId}\"");
         
         var latestVersions = await context.AndroidAppPackageVersions
             .Where(ver =>
@@ -54,18 +54,17 @@ public sealed class DownloadLatestSuitableAppVersionQueryHandler(
                     new DownloadVersionQuery 
                     { 
                         VersionId = currentVersionId,
-                        StandaloneApkOnly = query.StandaloneApkOnly,
                         ClientDeviceInfo = query.ClientDeviceInfo
                     }, ct);
                 
                 return downloadData;
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not OperationCanceledException)
             {
                 logger.LogWarning("Error during version selection. Version id: \"{VersionId}\" Error message: {Message}", currentVersionId, e.Message);
             }
         }
         
-        throw new Exception("No suitable app versions found");
+        throw new NotFoundException("No suitable app version found.");
     }
 }

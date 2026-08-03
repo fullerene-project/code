@@ -1,3 +1,4 @@
+using Fullerene.Shared.Domain.Exceptions;
 using Fullerene.Signer.Infrastructure.Abstractions;
 using Fullerene.Signer.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
@@ -16,7 +17,7 @@ public sealed class MasterSeedProvider(
         }
         catch (Exception e)
         {
-            throw new Exception("Invalid base64 master seed", e);
+            throw new InternalException($"Invalid base64 master seed. Error Message: \"{e.Message}\"");
         }
     }
 }

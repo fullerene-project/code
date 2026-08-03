@@ -1,9 +1,9 @@
-using System.Collections.Concurrent;
 using System.Text.Json;
 using CliWrap;
 using CliWrap.Buffered;
 using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Domain.Models;
+using Fullerene.Shared.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Fullerene.Manager.Infrastructure.Services;
@@ -49,7 +49,7 @@ public sealed class AndroidAppNixPackageMetaPuller(
             using var jsonDocument = JsonDocument.Parse(result.StandardOutput);
 
             if (jsonDocument.RootElement.ValueKind != JsonValueKind.Array)
-                throw new Exception("Nix commit json data isn't an array");
+                throw new InternalException("Nix commit json data isn't an array");
 
             var packageMetas = new List<AndroidAppNixPackageMeta>(jsonDocument.RootElement.GetArrayLength());
 
@@ -64,7 +64,7 @@ public sealed class AndroidAppNixPackageMetaPuller(
 
                     if (meta is null)
                     {
-                        throw new Exception("Deserialized package meta is null");
+                        throw new InternalException("Deserialized package meta is null");
                     }
 
                     packageMetas.Add(meta);

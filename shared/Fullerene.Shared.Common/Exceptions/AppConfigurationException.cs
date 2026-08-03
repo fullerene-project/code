@@ -1,6 +1,8 @@
+using Fullerene.Shared.Domain.Exceptions;
+
 namespace Fullerene.Shared.Common.Exceptions;
 
-public sealed class AppConfigurationException(string validationError) : Exception(validationError)
+public sealed class AppConfigurationException(string validationError) : InternalException(validationError)
 {
     public static AppConfigurationException ConfigNotFound(string configName)
     {

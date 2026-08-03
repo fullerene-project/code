@@ -1,5 +1,6 @@
 using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Application.Dtos;
+using Fullerene.Shared.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
 
@@ -17,11 +18,13 @@ public sealed class StartTrackingAndroidAppCommandHandler(
     public async Task Handle(StartTrackingAndroidAppCommand command, CancellationToken ct)
     {
         var app = await context.AndroidAppPackages
-                      .FirstOrDefaultAsync(x => x.Id == command.AndroidAppId, ct)
-                  ?? throw new Exception($"App with id: \"{command.AndroidAppId}\" does not exist");
+            .FirstOrDefaultAsync(x => x.Id == command.AndroidAppId, ct);
+
+        if (app is null)
+            throw new NotFoundException($"App with id: \"{command.AndroidAppId}\" does not exist");
 
         if (app.IsTracked)
-            throw new Exception($"App with id: \"{command.AndroidAppId}\" is already tracked");
+            throw new ConflictException($"App with id: \"{command.AndroidAppId}\" is already tracked");
 
         app.IsTracked = true;
 

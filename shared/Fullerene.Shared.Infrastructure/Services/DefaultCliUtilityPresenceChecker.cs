@@ -1,5 +1,6 @@
 using CliWrap;
 using Fullerene.Shared.Common.Abstractions;
+using Fullerene.Shared.Domain.Exceptions;
 
 namespace Fullerene.Shared.Infrastructure.Services;
 
@@ -24,7 +25,7 @@ public abstract class DefaultCliUtilityPresenceChecker : IStartupTask
         }
         catch (Exception e)
         {
-            throw new Exception($"{_utilityName} is required to run application. Error: {e.Message}");
+            throw new InternalException($"{_utilityName} is required to run application. Error: {e.Message}");
         }
     }
 }

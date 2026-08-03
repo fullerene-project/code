@@ -77,11 +77,11 @@ public static class ServiceCollectionExtensions
             .ListenerCount(eventsSubscriptionSettings.ConcurrencyLimit);
 
         var buildTaskQueueName = taskQueueMappingSettings.QueueNameByTaskName.GetValueOrDefault(nameof(BuildTask))
-                                 ?? throw new Exception($"No queue name found for {nameof(BuildTask)} task");
+                                 ?? throw new AppConfigurationException($"No queue name found for {nameof(BuildTask)} task");
         wolverineOptions.PublishMessage<BuildTask>().ToRabbitQueue(buildTaskQueueName);
 
         var signingTaskQueueName = taskQueueMappingSettings.QueueNameByTaskName.GetValueOrDefault(nameof(SigningTask))
-                                 ?? throw new Exception($"No queue name found for {nameof(SigningTask)} task");
+                                 ?? throw new AppConfigurationException($"No queue name found for {nameof(SigningTask)} task");
         wolverineOptions.PublishMessage<SigningTask>().ToRabbitQueue(signingTaskQueueName);
 
         wolverineOptions.PersistMessagesWithPostgresql(postgresConnectionString);
