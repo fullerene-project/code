@@ -2,7 +2,6 @@ using Fullerene.Shared.Common.Abstractions.Storage;
 using Fullerene.Manager.Application.Abstractions;
 using Fullerene.Manager.Application.Dtos;
 using Fullerene.Shared.Domain.Exceptions;
-using Fullerene.Shared.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fullerene.Manager.Application.Cqrs.Queries;

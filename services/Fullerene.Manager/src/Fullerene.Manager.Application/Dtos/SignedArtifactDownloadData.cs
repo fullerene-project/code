@@ -1,5 +1,3 @@
-using Fullerene.Shared.Domain.Models;
-
 namespace Fullerene.Manager.Application.Dtos;
 
 public sealed class SignedArtifactDownloadData

@@ -1,4 +1,4 @@
-namespace Fullerene.Shared.Domain.Models;
+namespace Fullerene.Manager.Application.Dtos;
 
 public class DownloadableFileData
 {
