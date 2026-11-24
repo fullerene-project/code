@@ -5,7 +5,6 @@ namespace Fullerene.Shared.Contracts.Build;
 public sealed class NixBuildOutputManifest
 {
     public required ICollection<NixBuildOutputEntry> Entries { get; init; }
-    public required int ReleaseChannel { get; init; }
 }
 
 public sealed class NixBuildOutputEntry
@@ -33,7 +32,6 @@ public sealed class NixBuildOutputEntry
 public sealed class BuildResultManifest
 {
     public required ICollection<BuildResultEntry> Entries { get; init; }
-    public required ReleaseChannel ReleaseChannel { get; init; }
 }
 
 public sealed class BuildResultEntry

@@ -50,7 +50,6 @@ public sealed class BuildTaskHandler(
             var buildResultManifest = new BuildResultManifest
             {
                 Entries = new List<BuildResultEntry>(manifest.Entries.Count),
-                ReleaseChannel = (ReleaseChannel)manifest.ReleaseChannel
             };
 
             var filesToUpload = new HashSet<(string filePath, string storageKey)>(manifest.Entries.Count);

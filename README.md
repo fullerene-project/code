@@ -466,7 +466,6 @@ Upon build completion, the derivation's output directory (`$out`) must contain:
 The file must be located at the root of `$out` and adhere to the following structure:
 ```json
 {
-  "releaseChannel": 10,
   "entries": [
     {
       "fileName": "app-universal-release-unsigned.apk",
